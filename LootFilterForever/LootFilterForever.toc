@@ -1,0 +1,10 @@
+## Interface: 16001
+## Title: LootFilter Forever
+## Notes: Takes only what you need: quest items, items by quality, by vendor price per unit, materials, and whatever fits into stacks you already carry.
+## Notes-ruRU: Собирает только нужное: квестовое, по качеству, по цене за штуку, материалы и то, что ляжет в начатые стопки.
+## IconTexture: Interface\AddOns\LootFilterForever\icon
+## Author: Artem
+## Version: 1.2.0
+## SavedVariables: LootFilterForeverDB
+
+LootFilterForever.lua
