@@ -40,19 +40,34 @@
 4. The file shows *Under Review* until moderators approve it. A project needs at least one Release
    file before it appears in the CurseForge app.
 
-## Optional: automatic releases
+## Automatic releases
 
-Host the repository on GitHub and use the BigWigsMods packager:
+`.github/workflows/release.yml` uploads a file when a `v*` tag is pushed to GitHub:
 
-1. Add `## X-Curse-Project-ID: <numeric project id>` to the TOC. Use the number from the project
-   page sidebar, not the slug.
-2. Create an API token in the CurseForge author dashboard and store it as the `CF_API_KEY` repository
-   secret.
-3. Add a `.pkgmeta` file and a release workflow that runs `BigWigsMods/packager@v2` on tags.
-4. Push a tag (`v1.2.0`) to release. `-beta` and `-alpha` suffixes map to those release types.
+1. Bump `## Version` in the TOC, add the matching `## [x.y.z]` section to `CHANGELOG.md`, commit
+   and push.
+2. `git tag v1.3.0 && git push origin v1.3.0`. A `-beta` or `-alpha` suffix (`v1.3.0-beta1`)
+   uploads that release type; any other tag is a Release.
 
-The packager reads the game version from `## Interface:`. Verify that it maps `16001` to the
-Forever flavor before relying on it; if not, set the game version manually on the first upload.
+The workflow:
+
+- runs the tests;
+- checks that the tag matches `## Version`;
+- takes that version's `CHANGELOG.md` section as the file changelog;
+- finds the CurseForge game version of type 88568 ("WoW Forever") whose `apiVersion` equals
+  `## Interface` (16001 is "1.60.1", ID 17053);
+- zips only `LootFilterForever/` and uploads it to the project in `## X-Curse-Project-ID` (1786908).
+
+Any failed check stops it before the upload. When Forever moves to a new interface, CurseForge must
+list it first, otherwise the run stops with "CurseForge has no WoW Forever version for interface N".
+
+The API token lives in the `CF_API_TOKEN` repository secret (GitHub → Settings → Secrets and
+variables → Actions). Tokens are created at <https://authors.curseforge.com/#/settings/api-tokens>.
+The upload API is documented at
+<https://support.curseforge.com/en/support/solutions/articles/9000197321-curseforge-upload-api>.
+
+The BigWigsMods packager was not used: it ships every tracked file unless `.pkgmeta` ignores it, and
+the addon sits in a subfolder of the repository.
 
 ## Listing text
 

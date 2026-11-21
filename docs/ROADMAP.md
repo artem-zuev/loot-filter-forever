@@ -7,8 +7,6 @@ In rough priority order:
 2. **License.** Pick one (MIT suggested) and add `LICENSE`.
 3. **Screenshots** for CurseForge. The logo is `art/logo.png`.
 4. **Publish.** Create the CurseForge project and upload; see [CURSEFORGE.md](CURSEFORGE.md).
-5. **Automation (optional).** A GitHub repo with the BigWigsMods packager, `.pkgmeta` and
-   `## X-Curse-Project-ID`.
 6. **Feature ideas:**
   - re-sync Auto Loot on `CVAR_UPDATE`;
   - Alt-click an item (bag or loot window) to add it to the always or never list;
