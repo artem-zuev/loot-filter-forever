@@ -2,6 +2,14 @@
 
 All notable changes to LootFilter Forever. Versions follow the `## Version` line in `LootFilterForever/LootFilterForever.toc`.
 
+## [1.3.0] - 2026-11-21
+
+### Added
+- Mage scrolls: a mage now takes the 17 unidentified scrolls ("Scroll: CWAL", "Scroll: KWYJIBO" and
+  the rest) that Comprehend Scroll deciphers. They are white, sell for 15 copper and do not stack,
+  so no other rule took them. The new *Mage scrolls* check box is on by default. Settings are
+  account-wide, so the check box is dimmed on other classes, and they leave the scrolls.
+
 ## [1.2.0] - 2026-11-06
 
 ### Changed

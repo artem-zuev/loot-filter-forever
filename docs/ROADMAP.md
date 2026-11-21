@@ -13,7 +13,11 @@ In rough priority order:
   - re-sync Auto Loot on `CVAR_UPDATE`;
   - Alt-click an item (bag or loot window) to add it to the always or never list;
   - show and edit the lists in the window;
-  - per-character settings.
+  - per-character settings;
+  - auction prices as a second price source (`TSM_API`, Auctionator API) if such an addon is
+    confirmed on Forever. Not yet: TSM support there is unconfirmed, the auction addons are
+    scattered (Auctioneer (Forever), auxForever, MarketSync…), and without fresh scans the take/leave
+    decision would vary.
 
 ## Known limitations
 

@@ -5,6 +5,7 @@
 --  items on the "always" list. Then, by settings:
 --    * quality from a threshold (uncommon and above by default);
 --    * profession materials;
+--    * unidentified mage scrolls (mages only);
 --    * items that sell to a vendor for at least a threshold per unit;
 --    * items that fit into a partial stack already in the bags and need
 --      no new slot.
@@ -46,6 +47,9 @@ local RU = {
     ["Also take"] = "Что ещё брать",
     ["Profession materials"] = "Материалы профессий",
     ["Ore, herbs, cloth, leather, meat, gems, recipes."] = "Руда, травы, ткань, кожа, мясо, самоцветы, рецепты.",
+    ["Mage scrolls"] = "Свитки мага",
+    ["Unidentified scrolls that a mage deciphers. Mage only: other classes leave them on the corpse."] =
+        "Нерасшифрованные свитки, которые расшифровывает маг. Только для мага: другие классы оставляют их на трупе.",
     ["Fill partial stacks in the bags"] = "Добирать в начатые стопки в сумке",
     ["If the item is already in your bags and its stack has room, it needs no new slot, so it is taken."] =
         "Если такой предмет уже лежит в сумке и в стопке есть место, он не займёт новый слот, и его можно взять.",
@@ -65,6 +69,7 @@ local RU = {
     ["quest items"] = "квестовое",
     ["%s and above"] = "%s и выше",
     ["profession materials"] = "материалы профессий",
+    ["mage scrolls"] = "свитки мага",
     ["anything worth %s or more per unit"] = "всё от %s за штуку",
     ["items that fit into partial stacks"] = "то, что ляжет в начатые стопки",
     ["enabled"] = "включён",
@@ -98,6 +103,7 @@ local DEFAULTS = {
     useValue   = true,  -- take items below the quality threshold if they sell well
     unitPrice  = 1000,  -- copper PER UNIT: 1000 = 10 silver
     mats       = true,  -- profession materials, gems, recipes
+    mageScrolls = true,
     stack      = true,  -- fill partial stacks in the bags
     close      = true,  -- close the window once the wanted loot is taken
     report     = true,  -- report in chat what was left on the corpse
@@ -119,6 +125,25 @@ local MATS_CLASS = {
     [IC.Recipe or 9]     = true,
     [IC.Gem or 3]        = true,
     [IC.Reagent or 5]    = true,
+}
+local MAGE_SCROLLS = {
+    [211780] = "Scroll: KWYJIBO",
+    [211784] = "Scroll: WUBBA WUBBA",
+    [211785] = "Scroll: CWAL",
+    [211786] = "Scroll: CHAP BALK WELLES",
+    [211787] = "Scroll: LOWER PING WHOMEVER",
+    [211853] = "Scroll: VOCE WELL",
+    [211854] = "Scroll: OMIT KESA",
+    [211855] = "Scroll: STHENIC LUNATE",
+    [213543] = "Scroll: UPDOG",
+    [213544] = "Scroll: TOPAZ YORAK",
+    [213545] = "Scroll: PEATCHY ATTAX",
+    [213546] = "Scroll: SHOOBEEDOOP",
+    [213547] = "Scroll: THAW WORDS",
+    [281015] = "Scroll: DOST OREM",
+    [281016] = "Scroll: FORGOT HOOF THUD",
+    [281017] = "Scroll: KEEP CLEF FOCI",
+    [281018] = "Scroll: RARE SERVICHI RADAR",
 }
 
 local QUALITY_NAMES = { [0] = L["Poor"], L["Common"], L["Uncommon"], L["Rare"], L["Epic"] }
@@ -148,6 +173,10 @@ end
 local function Money(copper)
     if GetCoinTextureString then return GetCoinTextureString(copper) end
     return tostring(copper) .. "c"
+end
+
+local function IsMage()
+    return select(2, UnitClass("player")) == "MAGE"
 end
 
 local function QualityRGB(q)
@@ -212,6 +241,7 @@ local function Decide(slot)
         if db.always[itemID] then return true end
     end
     if isQuestItem or questID or (classID and ALWAYS_CLASS[classID]) then return true end
+    if db.mageScrolls and itemID and MAGE_SCROLLS[itemID] and IsMage() then return true end
     if quality and quality >= db.minQuality then return true end
     if db.mats and classID and MATS_CLASS[classID] then return true end
 
@@ -526,6 +556,10 @@ local function BuildWindow()
     Checkbox(win, L["Profession materials"], "mats", y,
         L["Ore, herbs, cloth, leather, meat, gems, recipes."])
     y = y - 26
+    local scrolls = Checkbox(win, L["Mage scrolls"], "mageScrolls", y,
+        L["Unidentified scrolls that a mage deciphers. Mage only: other classes leave them on the corpse."])
+    refreshers[#refreshers + 1] = function() scrolls:SetAlpha(IsMage() and 1 or 0.4) end
+    y = y - 26
     Checkbox(win, L["Fill partial stacks in the bags"], "stack", y,
         L["If the item is already in your bags and its stack has room, it needs no new slot, so it is taken."])
 
@@ -608,6 +642,7 @@ end
 local function Status()
     local parts = { L["money"], L["quest items"], L["%s and above"]:format(QualityText(db.minQuality)) }
     if db.mats then parts[#parts + 1] = L["profession materials"] end
+    if db.mageScrolls and IsMage() then parts[#parts + 1] = L["mage scrolls"] end
     if db.useValue then parts[#parts + 1] = L["anything worth %s or more per unit"]:format(Money(db.unitPrice)) end
     if db.stack then parts[#parts + 1] = L["items that fit into partial stacks"] end
     local state = db.enabled and ("|cff40ff40" .. L["enabled"] .. "|r") or ("|cffff6060" .. L["disabled"] .. "|r")

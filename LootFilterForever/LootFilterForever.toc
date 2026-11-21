@@ -4,7 +4,7 @@
 ## Notes-ruRU: Собирает только нужное: квестовое, по качеству, по цене за штуку, материалы и то, что ляжет в начатые стопки.
 ## IconTexture: Interface\AddOns\LootFilterForever\icon
 ## Author: Artem
-## Version: 1.2.0
+## Version: 1.3.0
 ## SavedVariables: LootFilterForeverDB
 
 LootFilterForever.lua

@@ -75,6 +75,7 @@ window, and tells you in chat what it left behind.
 ### Taken by your rules
 - **Quality:** items of the chosen quality and above (default: Uncommon and above)
 - **Profession materials:** ore, herbs, cloth, leather, meat, gems, recipes
+- **Mage scrolls:** on a mage, the unidentified scrolls ("Scroll: CWAL" and the rest) for Comprehend Scroll
 - **Vendor value:** anything that sells for at least your threshold **per unit** (default: 10 silver)
 - **Stack fill:** items that fit into a partial stack you already carry, so they never cost a new bag slot
 

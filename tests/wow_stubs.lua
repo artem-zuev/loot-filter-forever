@@ -21,6 +21,8 @@ C_Timer = { After = function(_, f) f() end }
 LOADED_ADDONS = {}
 C_AddOns = { IsAddOnLoaded = function(name) return LOADED_ADDONS[name] == true end }
 NUM_TOTAL_EQUIPPED_BAG_SLOTS = 5
+PLAYER_CLASS = "MAGE"
+function UnitClass() return "Mage", PLAYER_CLASS, 8 end
 SHIFT, CTRL = false, false
 function IsShiftKeyDown() return SHIFT end
 function IsControlKeyDown() return CTRL end
@@ -58,6 +60,7 @@ function Mock:SetFocus() self._focus = true end
 function Mock:ClearFocus() self._focus = false; if self._scripts.OnEditFocusLost then self._scripts.OnEditFocusLost(self) end end
 function Mock:RegisterEvent(e) local ev = rawget(self, "ev") or {}; rawset(self, "ev", ev); ev[e] = true end
 function Mock:SetEnabled(v) self._enabled = v end
+function Mock:SetAlpha(a) self._alpha = a end
 function Mock:SetBackdrop(b) assert(type(b) == "table", "SetBackdrop needs table"); self._bd = true end
 function Mock:SetBackdropColor() assert(self._bd, "SetBackdropColor before SetBackdrop") end
 function Mock:SetBackdropBorderColor() assert(self._bd, "SetBackdropBorderColor before SetBackdrop") end
