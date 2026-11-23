@@ -91,6 +91,7 @@ window, and tells you in chat what it left behind.
 - **Quality:** items of the chosen quality and above (default: Uncommon and above)
 - **Profession materials:** ore, herbs, cloth, leather, meat, gems, recipes
 - **Mage scrolls:** on a mage, the unidentified scrolls ("Scroll: CWAL" and the rest) for Comprehend Scroll
+- **Waylaid Crates:** every crate, white and green, that you fill and hand in for Merchant's Favor
 - **Vendor value:** anything that sells for at least your threshold **per unit** (default: 10 silver)
 - **Stack fill:** items that fit into a partial stack you already carry, so they never cost a new bag slot
 

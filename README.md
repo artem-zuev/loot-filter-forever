@@ -3,7 +3,7 @@
 A loot filter for **World of Warcraft: Forever**. When you loot, LootFilter Forever takes only what you want
 and closes the loot window. Everything else stays on the corpse, and a chat line tells you what was left.
 
-> Status: 1.3.0 (formerly LootSieve). The in-game text is English, or Russian on a Russian game client.
+> Status: 1.4.0 (formerly LootSieve). The in-game text is English, or Russian on a Russian game client.
 
 ## What it takes
 
@@ -20,6 +20,7 @@ Depending on settings (defaults in brackets):
 | Items of this quality and above | Uncommon (green) and above |
 | Profession materials: trade goods, gems, recipes, reagents | on |
 | Unidentified mage scrolls ("Scroll: CWAL" and the other 16), on mages only | on |
+| Waylaid Crates (all 31, white and green), handed in for Merchant's Favor | on |
 | Items that sell to a vendor for at least this much **per unit** | on, 10 silver |
 | Items that fit into a partial stack you already carry, so they need no new bag slot | on |
 
@@ -47,7 +48,7 @@ The window has:
 - an on/off switch
 - quality buttons, from Poor (grey) to Epic (purple)
 - the per-unit vendor price, as gold, silver and copper fields
-- check boxes for profession materials, mage scrolls (dimmed on other classes), stack fill, closing the loot window and the chat report
+- check boxes for profession materials, mage scrolls (dimmed on other classes), Waylaid Crates, stack fill, closing the loot window and the chat report
 - always/never list counts and a Clear button
 
 Slash commands:

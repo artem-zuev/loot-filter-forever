@@ -87,12 +87,13 @@ The first matching rule wins:
 | 5 | item ID in `db.always` | take |
 | 6 | `isQuestItem`, `questID`, or class Questitem (12), Container (1) or Key (13) | take |
 | 7 | `db.mageScrolls`, item ID in `MAGE_SCROLLS`, and the character is a mage | take |
-| 8 | `quality >= db.minQuality` | take |
-| 9 | `db.mats` and class Tradegoods (7), Recipe (9), Gem (3) or Reagent (5) | take |
-| 10 | `db.useValue` and the vendor price is unknown (item not cached) | take (safe default) |
-| 11 | `db.useValue` and vendor price per unit `>= db.unitPrice` | take |
-| 12 | `db.stack` and `StackRoom(itemID) >= quantity` | take; the room is reduced by `quantity` |
-| 13 | otherwise | leave |
+| 8 | `db.waylaidCrates` and item ID in `WAYLAID_CRATES` | take |
+| 9 | `quality >= db.minQuality` | take |
+| 10 | `db.mats` and class Tradegoods (7), Recipe (9), Gem (3) or Reagent (5) | take |
+| 11 | `db.useValue` and the vendor price is unknown (item not cached) | take (safe default) |
+| 12 | `db.useValue` and vendor price per unit `>= db.unitPrice` | take |
+| 13 | `db.stack` and `StackRoom(itemID) >= quantity` | take; the room is reduced by `quantity` |
+| 14 | otherwise | leave |
 
 Class IDs come from `Enum.ItemClass`, with the numeric fallbacks above.
 
@@ -100,6 +101,13 @@ Class IDs come from `Enum.ItemClass`, with the numeric fallbacks above.
 their English names. 13 reuse Season of Discovery IDs (211xxx, 213xxx); 4 are Forever-only
 (281015–281018). Matching by ID keeps the rule independent of the client language. The class check
 is `select(2, UnitClass("player")) == "MAGE"`, made on every decision.
+
+`WAYLAID_CRATES` maps the item IDs of the 31 Waylaid Crates to their English names: the base
+"Waylaid Crate" 248549 and the labelled crates 248682–248699 (gathered goods, white) and
+248702–248713 (crafted goods, green). 248700 and 248701 do not exist, so the table lists IDs, not a
+range. The green crates are in the table too, so the check box covers every crate at any quality
+threshold. With the check box off, there is just no crate rule: the green crates still pass the
+quality rule, and any crate passes the price rule at a threshold of 0.
 
 Vendor price is field 11 of `C_Item.GetItemInfo`. Maximum stack size is field 8.
 
@@ -146,6 +154,7 @@ or toggle. Re-checking on `CVAR_UPDATE` is an open idea.
 | `unitPrice` | number (copper) | `1000` | per-unit vendor price threshold |
 | `mats` | boolean | `true` | take profession materials |
 | `mageScrolls` | boolean | `true` | take unidentified mage scrolls; applies to mages only |
+| `waylaidCrates` | boolean | `true` | take Waylaid Crates |
 | `stack` | boolean | `true` | take items that fit existing partial stacks |
 | `close` | boolean | `true` | close the loot window when done |
 | `report` | boolean | `true` | print skipped items in chat |
@@ -213,7 +222,7 @@ After every successful command the window is refreshed.
 
 `GetLocale()` returns the `LOCALE` global, `"ruRU"` by default.
 
-`tests/cases.lua` loads the addon once and runs 72 checks in order; only the last section loads it
+`tests/cases.lua` loads the addon once and runs 79 checks in order; only the last section loads it
 again, as an English client. They cover:
 
 - saved-variable migration
@@ -225,6 +234,8 @@ again, as an English client. They cover:
 - the price toggle
 - mage scrolls: taken by a mage, left with the option off, left by other classes, beaten by the
   never list
+- Waylaid Crates: a white crate taken, left with the option off, beaten by the never list, taken by
+  any class
 - every control in the settings window
 - the slash commands
 - the locale table: read from the source file, every `L["..."]` key must have an `RU` entry, every

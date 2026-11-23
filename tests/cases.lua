@@ -35,6 +35,7 @@ ITEMS = {
     [108] = { class = 0,  price = 600,  name = "Bread",         stack = 20 },
     [109] = { class = 15, price = 2,    name = "Grey Pebble",   stack = 10 },
     [213546] = { class = 15, price = 15, name = "Scroll: SHOOBEEDOOP", stack = 1 },
+    [248682] = { class = 0,  price = 0,  name = "Waylaid Crate: Apprentice Herbs", stack = 1 },
 }
 
 -------------------------------------------------------------------------------
@@ -47,6 +48,7 @@ check(LootFilterForeverDB.minValue == nil and LootFilterForeverDB.unitPrice == 1
 check(LootFilterForeverDB.mats == false, "existing preference kept")
 check(LootFilterForeverDB.stack == true and LootFilterForeverDB.useValue == true and LootFilterForeverDB.close == true, "new keys get defaults")
 check(LootFilterForeverDB.mageScrolls == true, "mageScrolls defaults to on")
+check(LootFilterForeverDB.waylaidCrates == true, "waylaidCrates defaults to on")
 check(#SETTINGS_PAGES == 1 and SETTINGS_PAGES[1].name == "LootFilter Forever", "Blizzard Settings page registered")
 LootFilterForeverDB.mats = true
 
@@ -175,6 +177,22 @@ loot()
 check(count("LOOT") == 0, "never-list beats the mage scroll rule")
 closeLoot(); LootFilterForeverDB.never[213546] = nil
 
+section("waylaid crates")
+BAGS = {}
+corpse({ { type = 1, id = 248682, name = "Waylaid Crate: Apprentice Herbs", q = 1 } })
+wipe(LOG); loot()
+check(has("LOOT 1"), "white Waylaid Crate taken")
+closeLoot(); LootFilterForeverDB.waylaidCrates = false; wipe(LOG)
+loot()
+check(count("LOOT") == 0 and chatLine("Apprentice Herbs") ~= nil, "option off: crate left and reported")
+closeLoot(); LootFilterForeverDB.waylaidCrates = true; LootFilterForeverDB.never[248682] = "Waylaid Crate: Apprentice Herbs"; wipe(LOG)
+loot()
+check(count("LOOT") == 0, "never-list beats the crate rule")
+closeLoot(); LootFilterForeverDB.never[248682] = nil; PLAYER_CLASS = "WARRIOR"; wipe(LOG)
+loot()
+check(has("LOOT 1"), "not a mage: crate still taken")
+closeLoot(); PLAYER_CLASS = "MAGE"
+
 -------------------------------------------------------------------------------
 section("options window")
 SlashCmdList.LOOTFILTERFOREVER("")
@@ -185,12 +203,12 @@ for _, f in ipairs(CREATED) do
     if f._kind == "Button" and f._scripts.OnClick then buttons[#buttons + 1] = f end
     if f._kind == "EditBox" then boxes[#boxes + 1] = f end
 end
-check(#buttons == 14 and #boxes == 3, "14 clickable controls and 3 price boxes")
+check(#buttons == 15 and #boxes == 3, "15 clickable controls and 3 price boxes")
 -- buttons[1] is the Blizzard Settings page button, created at ADDON_LOADED.
 local B = { page = buttons[1], enabled = buttons[2],
             q = { [0] = buttons[3], buttons[4], buttons[5], buttons[6], buttons[7] },
-            useValue = buttons[8], mats = buttons[9], mageScrolls = buttons[10], stack = buttons[11],
-            close = buttons[12], report = buttons[13], clear = buttons[14] }
+            useValue = buttons[8], mats = buttons[9], mageScrolls = buttons[10], waylaidCrates = buttons[11],
+            stack = buttons[12], close = buttons[13], report = buttons[14], clear = buttons[15] }
 check(boxes[1]._text == "0" and boxes[2]._text == "10" and boxes[3]._text == "0", "price shows 0g 10s 0c")
 check(B.mageScrolls._alpha == 1, "mage scrolls check box is bright for a mage")
 PLAYER_CLASS = "WARRIOR"; B.mats:Click(); B.mats:Click()
@@ -198,7 +216,7 @@ check(B.mageScrolls._alpha == 0.4, "mage scrolls check box is dimmed for other c
 PLAYER_CLASS = "MAGE"
 B.q[1]:Click(); check(LootFilterForeverDB.minQuality == 1, "quality button: Common")
 B.q[3]:Click(); check(LootFilterForeverDB.minQuality == 3, "quality button: Rare")
-for _, key in ipairs({ "useValue", "mats", "mageScrolls", "stack", "close", "report" }) do
+for _, key in ipairs({ "useValue", "mats", "mageScrolls", "waylaidCrates", "stack", "close", "report" }) do
     B[key]:Click(); local off = LootFilterForeverDB[key] == false
     B[key]:Click(); check(off and LootFilterForeverDB[key] == true, "checkbox toggles " .. key)
 end
@@ -240,6 +258,7 @@ local status = chatLine("Берёт")
 check(status and status:find("зелёные|r и выше", 1, true) and not status:find("Зелёные", 1, true),
       "status uses the lowercase Cyrillic quality name")
 check(status:find("свитки мага", 1, true), "status lists mage scrolls for a mage")
+check(status:find("перехваченные ящики", 1, true), "status lists Waylaid Crates")
 SlashCmdList.LOOTFILTERFOREVER("off")
 check(CVARS.autoLootDefault == "1", "off restores game auto loot")
 wipe(LOG); loot()

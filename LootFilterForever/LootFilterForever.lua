@@ -6,6 +6,7 @@
 --    * quality from a threshold (uncommon and above by default);
 --    * profession materials;
 --    * unidentified mage scrolls (mages only);
+--    * Waylaid Crates (handed in for Merchant's Favor);
 --    * items that sell to a vendor for at least a threshold per unit;
 --    * items that fit into a partial stack already in the bags and need
 --      no new slot.
@@ -50,6 +51,9 @@ local RU = {
     ["Mage scrolls"] = "Свитки мага",
     ["Unidentified scrolls that a mage deciphers. Mage only: other classes leave them on the corpse."] =
         "Нерасшифрованные свитки, которые расшифровывает маг. Только для мага: другие классы оставляют их на трупе.",
+    ["Waylaid Crates"] = "Перехваченные ящики",
+    ["Fill them with profession materials and hand them in for Merchant's Favor. They also sell at the auction house."] =
+        "Их заполняют материалами профессий и сдают за Благосклонность торговцев. Ещё их продают на аукционе.",
     ["Fill partial stacks in the bags"] = "Добирать в начатые стопки в сумке",
     ["If the item is already in your bags and its stack has room, it needs no new slot, so it is taken."] =
         "Если такой предмет уже лежит в сумке и в стопке есть место, он не займёт новый слот, и его можно взять.",
@@ -70,6 +74,7 @@ local RU = {
     ["%s and above"] = "%s и выше",
     ["profession materials"] = "материалы профессий",
     ["mage scrolls"] = "свитки мага",
+    ["waylaid crates"] = "перехваченные ящики",
     ["anything worth %s or more per unit"] = "всё от %s за штуку",
     ["items that fit into partial stacks"] = "то, что ляжет в начатые стопки",
     ["enabled"] = "включён",
@@ -104,6 +109,7 @@ local DEFAULTS = {
     unitPrice  = 1000,  -- copper PER UNIT: 1000 = 10 silver
     mats       = true,  -- profession materials, gems, recipes
     mageScrolls = true,
+    waylaidCrates = true,
     stack      = true,  -- fill partial stacks in the bags
     close      = true,  -- close the window once the wanted loot is taken
     report     = true,  -- report in chat what was left on the corpse
@@ -144,6 +150,39 @@ local MAGE_SCROLLS = {
     [281016] = "Scroll: FORGOT HOOF THUD",
     [281017] = "Scroll: KEEP CLEF FOCI",
     [281018] = "Scroll: RARE SERVICHI RADAR",
+}
+local WAYLAID_CRATES = {
+    [248549] = "Waylaid Crate",
+    [248682] = "Waylaid Crate: Apprentice Herbs",
+    [248683] = "Waylaid Crate: Apprentice Ore",
+    [248684] = "Waylaid Crate: Apprentice Textiles",
+    [248685] = "Waylaid Crate: Apprentice Curiosities",
+    [248686] = "Waylaid Crate: Journeyman Herbs",
+    [248687] = "Waylaid Crate: Journeyman Ore",
+    [248688] = "Waylaid Crate: Journeyman Textiles",
+    [248689] = "Waylaid Crate: Journeyman Curiosities",
+    [248690] = "Waylaid Crate: Earthly Expert Herbs",
+    [248691] = "Waylaid Crate: Flowering Expert Herbs",
+    [248692] = "Waylaid Crate: Expert Ore",
+    [248693] = "Waylaid Crate: Expert Textiles",
+    [248694] = "Waylaid Crate: Expert Curiosities",
+    [248695] = "Waylaid Crate: Earthly Artisan Herbs",
+    [248696] = "Waylaid Crate: Flowering Artisan Herbs",
+    [248697] = "Waylaid Crate: Artisan Ore",
+    [248698] = "Waylaid Crate: Artisan Textiles",
+    [248699] = "Waylaid Crate: Artisan Curiosities",
+    [248702] = "Waylaid Crate: Apprentice Fabrics",
+    [248703] = "Waylaid Crate: Apprentice Ingots",
+    [248704] = "Waylaid Crate: Apprentice Parts",
+    [248705] = "Waylaid Crate: Journeyman Fabrics",
+    [248706] = "Waylaid Crate: Journeyman Ingots",
+    [248707] = "Waylaid Crate: Journeyman Parts",
+    [248708] = "Waylaid Crate: Expert Fabrics",
+    [248709] = "Waylaid Crate: Expert Ingots",
+    [248710] = "Waylaid Crate: Expert Parts",
+    [248711] = "Waylaid Crate: Artisan Fabrics",
+    [248712] = "Waylaid Crate: Artisan Ingots",
+    [248713] = "Waylaid Crate: Artisan Parts",
 }
 
 local QUALITY_NAMES = { [0] = L["Poor"], L["Common"], L["Uncommon"], L["Rare"], L["Epic"] }
@@ -242,6 +281,7 @@ local function Decide(slot)
     end
     if isQuestItem or questID or (classID and ALWAYS_CLASS[classID]) then return true end
     if db.mageScrolls and itemID and MAGE_SCROLLS[itemID] and IsMage() then return true end
+    if db.waylaidCrates and itemID and WAYLAID_CRATES[itemID] then return true end
     if quality and quality >= db.minQuality then return true end
     if db.mats and classID and MATS_CLASS[classID] then return true end
 
@@ -560,6 +600,9 @@ local function BuildWindow()
         L["Unidentified scrolls that a mage deciphers. Mage only: other classes leave them on the corpse."])
     refreshers[#refreshers + 1] = function() scrolls:SetAlpha(IsMage() and 1 or 0.4) end
     y = y - 26
+    Checkbox(win, L["Waylaid Crates"], "waylaidCrates", y,
+        L["Fill them with profession materials and hand them in for Merchant's Favor. They also sell at the auction house."])
+    y = y - 26
     Checkbox(win, L["Fill partial stacks in the bags"], "stack", y,
         L["If the item is already in your bags and its stack has room, it needs no new slot, so it is taken."])
 
@@ -643,6 +686,7 @@ local function Status()
     local parts = { L["money"], L["quest items"], L["%s and above"]:format(QualityText(db.minQuality)) }
     if db.mats then parts[#parts + 1] = L["profession materials"] end
     if db.mageScrolls and IsMage() then parts[#parts + 1] = L["mage scrolls"] end
+    if db.waylaidCrates then parts[#parts + 1] = L["waylaid crates"] end
     if db.useValue then parts[#parts + 1] = L["anything worth %s or more per unit"]:format(Money(db.unitPrice)) end
     if db.stack then parts[#parts + 1] = L["items that fit into partial stacks"] end
     local state = db.enabled and ("|cff40ff40" .. L["enabled"] .. "|r") or ("|cffff6060" .. L["disabled"] .. "|r")

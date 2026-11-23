@@ -2,6 +2,14 @@
 
 All notable changes to LootFilter Forever. Versions follow the `## Version` line in `LootFilterForever/LootFilterForever.toc`.
 
+## [1.4.0] - 2026-11-23
+
+### Added
+- Waylaid Crates: all 31 crates (the base "Waylaid Crate" and the labelled ones such as "Waylaid
+  Crate: Apprentice Herbs") are now taken. You fill them with profession materials and hand them in
+  for Merchant's Favor. The white ones are worth nothing to a vendor, so no other rule took them.
+  The new *Waylaid Crates* check box is on by default, for every class.
+
 ## [1.3.0] - 2026-11-21
 
 ### Added
