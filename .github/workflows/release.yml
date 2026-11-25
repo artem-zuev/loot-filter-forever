@@ -1,56 +1,36 @@
-name: Release to CurseForge
+name: Test and release
 
 on:
   push:
+    branches: [main]
     tags: ['v*']
+  pull_request:
+
+permissions:
+  contents: read
 
 jobs:
-  curseforge:
+  test:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v5
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq luajit lua5.1 lua-check
+      - run: luajit tests/run.lua
+      - run: lua5.1 tests/run.lua
+      - run: luacheck --no-color .
 
-      - name: Test
-        run: |
-          sudo apt-get install -y -qq luajit
-          luajit tests/run.lua
-
-      - name: Package and upload
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    concurrency: release-${{ github.ref }}
+    steps:
+      - uses: actions/checkout@v5
+      - run: bash .github/release.sh "$GITHUB_REF_NAME"
         env:
           CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-          TAG: ${{ github.ref_name }}
-        run: |
-          set -euo pipefail
-          toc=LootFilterForever/LootFilterForever.toc
-          field() { sed -n "s/^## $1: *//p" "$toc" | tr -d '\r'; }
-          version=$(field Version)
-          interface=$(field Interface)
-          project=$(field X-Curse-Project-ID)
-          release=${TAG#v}
-
-          case "$release" in
-            "$version"|"$version"-*) ;;
-            *) echo "::error::tag $TAG does not match ## Version $version"; exit 1 ;;
-          esac
-          case "$release" in
-            *-alpha*) type=alpha ;;
-            *-beta*) type=beta ;;
-            *) type=release ;;
-          esac
-
-          changelog=$(awk -v h="## [$version]" '/^## \[/ { p = index($0, h) == 1; next } p' CHANGELOG.md)
-          [ -n "$changelog" ] || { echo "::error::no CHANGELOG.md section for $version"; exit 1; }
-
-          api=https://wow.curseforge.com/api
-          gameVersion=$(curl -sS --fail-with-body -H "X-Api-Token: $CF_API_TOKEN" "$api/game/versions" |
-            jq --arg i "$interface" '[.[] | select(.gameVersionTypeID == 88568 and .apiVersion == $i) | .id][0] // empty')
-          [ -n "$gameVersion" ] || { echo "::error::CurseForge has no WoW Forever version for interface $interface"; exit 1; }
-
-          zip="LootFilterForever-$release.zip"
-          zip -qr "$zip" LootFilterForever
-          metadata=$(jq -n --arg cl "$changelog" --arg name "$release" --arg type "$type" --argjson gv "$gameVersion" \
-            '{changelog: $cl, changelogType: "markdown", displayName: $name, gameVersions: [$gv], releaseType: $type}')
-          curl -sS --fail-with-body -H "X-Api-Token: $CF_API_TOKEN" \
-            --form-string "metadata=$metadata" -F "file=@$zip" \
-            "$api/projects/$project/upload-file"
+          GH_TOKEN: ${{ github.token }}

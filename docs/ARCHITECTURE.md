@@ -222,7 +222,7 @@ After every successful command the window is refreshed.
 
 `GetLocale()` returns the `LOCALE` global, `"ruRU"` by default.
 
-`tests/cases.lua` loads the addon once and runs 79 checks in order; only the last section loads it
+`tests/cases.lua` loads the addon once and runs 81 checks in order; only the last section loads it
 again, as an English client. They cover:
 
 - saved-variable migration

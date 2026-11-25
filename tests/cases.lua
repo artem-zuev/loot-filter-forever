@@ -236,7 +236,10 @@ B.clear:Click()
 check(next(LootFilterForeverDB.always) == nil and next(LootFilterForeverDB.never) == nil, "Clear empties both lists")
 win._shown = false
 B.page:Click()
+check(not win._shown, "Blizzard Settings page button waits for the next frame")
+runTimers()
 check(win._shown, "Blizzard Settings page button opens the window")
+check(not pcall(function() win:SetTexure("x") end), "an unknown widget method is an error in the stubs")
 
 -------------------------------------------------------------------------------
 section("slash commands")

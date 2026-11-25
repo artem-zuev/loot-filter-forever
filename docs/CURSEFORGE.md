@@ -42,21 +42,28 @@
 
 ## Automatic releases
 
-`.github/workflows/release.yml` uploads a file when a `v*` tag is pushed to GitHub:
+`.github/workflows/release.yml` runs the tests (LuaJIT, Lua 5.1, luacheck) on every push to `main`
+and on pull requests. When a `v*` tag is pushed, it also publishes the release:
 
 1. Bump `## Version` in the TOC, add the matching `## [x.y.z]` section to `CHANGELOG.md`, commit
    and push.
 2. `git tag v1.3.0 && git push origin v1.3.0`. A `-beta` or `-alpha` suffix (`v1.3.0-beta1`)
-   uploads that release type; any other tag is a Release.
+   uploads that release type and makes a GitHub pre-release; any other tag is a Release.
 
-The workflow:
+The release job (`.github/release.sh`, needs the test job to pass):
 
-- runs the tests;
 - checks that the tag matches `## Version`;
-- takes that version's `CHANGELOG.md` section as the file changelog;
+- takes that version's `CHANGELOG.md` section as the changelog;
+- zips only `LootFilterForever/` and creates a GitHub Release for the tag with that zip;
 - finds the CurseForge game version of type 88568 ("WoW Forever") whose `apiVersion` equals
   `## Interface` (16001 is "1.60.1", ID 17053);
-- zips only `LootFilterForever/` and uploads it to the project in `## X-Curse-Project-ID` (1786908).
+- uploads the same zip to the project in `## X-Curse-Project-ID` (1786908) and writes
+  `CurseForge file ID: N` into the GitHub Release notes;
+- prints the addon, version, commit, zip SHA-256 and CurseForge file ID in the job summary.
+
+Re-running a failed release job is safe: it reuses the zip from the GitHub Release and skips the
+CurseForge upload once the release notes hold the file ID. `DRY_RUN=1 bash .github/release.sh v1.4.0`
+builds the zip locally and uploads nothing.
 
 Any failed check stops it before the upload. When Forever moves to a new interface, CurseForge must
 list it first, otherwise the run stops with "CurseForge has no WoW Forever version for interface N".

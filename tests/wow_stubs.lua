@@ -1,9 +1,10 @@
 -- Minimal stand-ins for the WoW client API used by LootFilter Forever, enough to run
 -- tests/cases.lua outside the game. Loot slots, items and bag contents are
 -- plain tables (SLOTS, ITEMS, BAGS) that the cases fill in; every LootSlot,
--- CloseLoot, SetCVar and chat line is appended to LOG. UI frames are generic
--- mocks that accept any method; only templates verified on the WoW Forever
--- client are allowed (see CLAUDE.md).
+-- CloseLoot, SetCVar and chat line is appended to LOG. UI frames are mocks that
+-- accept only the widget methods listed below; only templates verified on the
+-- WoW Forever client are allowed (see CLAUDE.md). C_Timer.After only queues: call
+-- runTimers() to fire.
 Enum = { LootSlotType = { None = 0, Item = 1, Money = 2, Currency = 3 },
          ItemClass = { Consumable=0, Container=1, Weapon=2, Gem=3, Armor=4, Reagent=5, Tradegoods=7, Recipe=9, Questitem=12, Key=13, Miscellaneous=15 } }
 LOG = {}
@@ -17,7 +18,9 @@ function wipe(t) for k in pairs(t) do t[k] = nil end return t end
 tinsert = table.insert
 CVARS = { autoLootDefault = "1" }
 C_CVar = { GetCVarBool = function(k) return CVARS[k] == "1" end, SetCVar = function(k, v) CVARS[k] = v; log("CVAR " .. k .. "=" .. v) end }
-C_Timer = { After = function(_, f) f() end }
+TIMERS = {}
+C_Timer = { After = function(_, f) TIMERS[#TIMERS+1] = f end }
+function runTimers() local due = TIMERS; TIMERS = {}; for i = 1, #due do due[i]() end end
 LOADED_ADDONS = {}
 C_AddOns = { IsAddOnLoaded = function(name) return LOADED_ADDONS[name] == true end }
 NUM_TOTAL_EQUIPPED_BAG_SLOTS = 5
@@ -44,8 +47,17 @@ function LootSlot(i) log("LOOT " .. i) end
 function CloseLoot() log("CLOSE") end
 SlashCmdList = {}
 -- generic UI mock
+local NOOP = {}
+for _, name in ipairs({ "AddLine", "EnableMouse", "HighlightText", "RegisterForDrag", "SetAutoFocus", "SetClampedToScreen",
+    "SetFontObject", "SetFrameStrata", "SetHeight", "SetJustifyH", "SetMaxLetters", "SetMovable", "SetNumeric", "SetOwner",
+    "SetPoint", "SetSize", "SetTextColor", "SetTextInsets", "SetTexture", "SetToplevel", "SetVertexColor", "SetWidth",
+    "SetWordWrap", "StartMoving", "StopMovingOrSizing" }) do NOOP[name] = function() end end
 local Mock = {}
-Mock.__index = function(t, k) local v = rawget(Mock, k); if v then return v end; return function() end end
+Mock.__index = function(_, k)
+  local v = rawget(Mock, k) or NOOP[k]
+  if v or not tostring(k):match("^%u") then return v end
+  error("unknown widget method " .. tostring(k) .. ": add it to NOOP once it is confirmed on the client", 2)
+end
 local function newMock(kind, tmpl) return setmetatable({ _kind = kind, _tmpl = tmpl, _scripts = {}, _text = "", _shown = false, _focus = false, _bd = false }, Mock) end
 function Mock:CreateFontString() return newMock("FontString") end
 function Mock:CreateTexture() return newMock("Texture") end
@@ -54,6 +66,7 @@ function Mock:SetText(t) self._text = t end
 function Mock:GetText() return self._text end
 function Mock:SetShown(v) self._shown = v and true or false end
 function Mock:Show() self._shown = true; if self._scripts.OnShow then self._scripts.OnShow(self) end end
+function Mock:Hide() self._shown = false end
 function Mock:IsShown() return self._shown end
 function Mock:HasFocus() return self._focus == true end
 function Mock:SetFocus() self._focus = true end
